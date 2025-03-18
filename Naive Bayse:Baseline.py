@@ -6,7 +6,7 @@ from sklearn.naive_bayes import MultinomialNB
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
 
 # Load datasets
-file_paths = ["/mnt/data/caffe.csv", "/mnt/data/incubator-mxnet.csv", "/mnt/data/keras.csv"]
+file_paths = ["/Users/anshreyas/Documents/University Of Birmingham/Study Material/Sem 2/Intelligent Software Engineering/lab1_dataset/pytorch.csv"]
 dataframes = [pd.read_csv(file, encoding='utf-8') for file in file_paths]
 
 # Merge datasets into one DataFrame
