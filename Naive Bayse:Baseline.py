@@ -11,18 +11,14 @@ df = pd.read_csv(file_path, encoding='utf-8')
 
 # Select relevant columns and handle missing values
 df = df[['Title', 'Body', 'class']].dropna()
-df['text'] = df['Title'] + " " + df['Body']  # Combine Title & Body
-df = df[['text', 'class']]  # Keep only relevant columns
+df['text'] = df['Title'] + " " + df['Body']
+df = df[['text', 'class']]
 
 # Store evaluation metrics across 30 runs
-accuracy_list = []
-precision_list = []
-recall_list = []
-f1_list = []
+results = []
 
 # Train and evaluate the model 30 times
 for i in range(30):
-    # Train-test split
     X_train, X_test, y_train, y_test = train_test_split(df['text'], df['class'], test_size=0.2, random_state=i, stratify=df['class'])
 
     # Convert text to TF-IDF features
@@ -34,18 +30,17 @@ for i in range(30):
     nb_model = MultinomialNB()
     nb_model.fit(X_train_tfidf, y_train)
 
-    # Predict on test set using Naïve Bayes
-    y_pred_nb = nb_model.predict(X_test_tfidf)
+    # Predict and evaluate
+    y_pred = nb_model.predict(X_test_tfidf)
+    results.append([
+        accuracy_score(y_test, y_pred),
+        precision_score(y_test, y_pred, zero_division=1),
+        recall_score(y_test, y_pred, zero_division=1),
+        f1_score(y_test, y_pred, zero_division=1)
+    ])
 
-    # Evaluate model
-    accuracy_list.append(accuracy_score(y_test, y_pred_nb))
-    precision_list.append(precision_score(y_test, y_pred_nb, zero_division=1))
-    recall_list.append(recall_score(y_test, y_pred_nb, zero_division=1))
-    f1_list.append(f1_score(y_test, y_pred_nb, zero_division=1))
+# Save results to CSV
+results_df = pd.DataFrame(results, columns=["Accuracy", "Precision", "Recall", "F1-score"])
+results_df.to_csv("naive_bayes_results.csv", index=False)
 
-# Compute mean & median of evaluation metrics
-print("\nFinal Naïve Bayes Performance Across 30 Runs:")
-print(f"Mean Accuracy: {np.mean(accuracy_list):.4f}, Median Accuracy: {np.median(accuracy_list):.4f}")
-print(f"Mean Precision: {np.mean(precision_list):.4f}, Median Precision: {np.median(precision_list):.4f}")
-print(f"Mean Recall: {np.mean(recall_list):.4f}, Median Recall: {np.median(recall_list):.4f}")
-print(f"Mean F1 Score: {np.mean(f1_list):.4f}, Median F1 Score: {np.median(f1_list):.4f}")
+print("Naïve Bayes results saved to naive_bayes_results.csv")
