@@ -26,6 +26,17 @@ df = df[['text', 'Comments', 'class']]  # Keep only relevant columns
 # Check class distribution
 print("Class Distribution:\n", df['class'].value_counts())
 
+# Sentiment Analysis using VADER (Moved to Earlier Step)
+sia = SentimentIntensityAnalyzer()
+df['sentiment_score'] = df['Comments'].apply(lambda x: sia.polarity_scores(str(x))['compound'])
+
+# Convert sentiment scores to categories
+df['sentiment_label'] = df['sentiment_score'].apply(lambda x: "positive" if x > 0.05 else ("negative" if x < -0.05 else "neutral"))
+
+# One-Hot Encoding for sentiment labels
+encoder = OneHotEncoder(sparse_output=False)
+sentiment_encoded = encoder.fit_transform(df[['sentiment_label']])
+
 # Tokenization for Word2Vec
 df['tokenized_text'] = df['text'].apply(lambda x: x.lower().split())
 
@@ -102,18 +113,7 @@ print(f"Mean Precision: {np.mean(precision_list):.4f}, Median Precision: {np.med
 print(f"Mean Recall: {np.mean(recall_list):.4f}, Median Recall: {np.median(recall_list):.4f}")
 print(f"Mean F1 Score: {np.mean(f1_list):.4f}, Median F1 Score: {np.median(f1_list):.4f}")
 
-# Sentiment Analysis using VADER
-sia = SentimentIntensityAnalyzer()
-df['sentiment_score'] = df['Comments'].apply(lambda x: sia.polarity_scores(str(x))['compound'])
-
-# Convert sentiment scores to categories
-df['sentiment_label'] = df['sentiment_score'].apply(lambda x: "positive" if x > 0.05 else ("negative" if x < -0.05 else "neutral"))
-
-# One-Hot Encoding for sentiment labels
-encoder = OneHotEncoder(sparse=False)
-sentiment_encoded = encoder.fit_transform(df[['sentiment_label']])
-
-# Print sentiment analysis summary
+# Print sentiment analysis summary (Now Happens Before Model Training)
 sentiment_counts = df['sentiment_label'].value_counts()
 print("\nSentiment Analysis Summary (VADER):")
 print(sentiment_counts)
