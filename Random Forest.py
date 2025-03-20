@@ -14,12 +14,9 @@ from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_sc
 # Download VADER lexicon
 nltk.download("vader_lexicon")
 
-# Load datasets
-file_paths = ["/Users/anshreyas/Documents/University Of Birmingham/Study Material/Sem 2/Intelligent Software Engineering/lab1_dataset/pytorch.csv"]
-dataframes = [pd.read_csv(file, encoding="utf-8") for file in file_paths]
-
-# Merge datasets into one DataFrame
-df = pd.concat(dataframes, ignore_index=True)
+# Load dataset
+file_path = "/Users/anshreyas/Documents/University Of Birmingham/Study Material/Sem 2/Intelligent Software Engineering/lab1_dataset/pytorch.csv"
+df = pd.read_csv(file_path, encoding="utf-8")
 
 # Select relevant columns and drop missing values
 df = df[['Title', 'Body', 'Comments', 'class']].dropna()
@@ -55,44 +52,55 @@ df['word2vec_features'] = df['tokenized_text'].apply(lambda x: get_weighted_word
 X = np.vstack(df['word2vec_features'])
 y = df['class']
 
-# Train-test split
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42, stratify=y)
+# Store evaluation metrics across 30 runs
+accuracy_list = []
+precision_list = []
+recall_list = []
+f1_list = []
 
-# Apply SMOTE to fix class imbalance
-smote = SMOTE(random_state=42)
-X_train_resampled, y_train_resampled = smote.fit_resample(X_train, y_train)
+# Train and evaluate the model 30 times
+for i in range(30):
+    # Train-test split
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=i, stratify=y)
 
-# Hyperparameter tuning using Grid Search
-param_grid = {
-    'n_estimators': [100, 200, 300],
-    'max_depth': [10, 20, None],
-    'min_samples_split': [2, 5, 10]
-}
+    # Apply SMOTE to fix class imbalance
+    smote = SMOTE(random_state=i)
+    X_train_resampled, y_train_resampled = smote.fit_resample(X_train, y_train)
 
-grid_search = GridSearchCV(RandomForestClassifier(class_weight='balanced', random_state=42),
-                           param_grid, cv=5, scoring='f1', n_jobs=-1)
-grid_search.fit(X_train_resampled, y_train_resampled)
+    # Hyperparameter tuning using Grid Search (Run only on first loop for efficiency)
+    if i == 0:
+        param_grid = {
+            'n_estimators': [100, 200],
+            'max_depth': [10, 20],
+            'min_samples_split': [2, 5]
+        }
 
-# Train best Random Forest model
-best_rf_model = grid_search.best_estimator_
-best_rf_model.fit(X_train_resampled, y_train_resampled)
+        grid_search = GridSearchCV(RandomForestClassifier(class_weight='balanced', random_state=i),
+                                   param_grid, cv=3, scoring='f1', n_jobs=-1)
+        grid_search.fit(X_train_resampled, y_train_resampled)
 
-# Predictions (Using Lower Threshold 0.3)
-y_pred_proba = best_rf_model.predict_proba(X_test)[:, 1]  # Get probability of class 1 (Bug)
-y_pred = (y_pred_proba > 0.3).astype(int)  # Lower threshold from 0.5 to 0.3
+        # Best model from Grid Search
+        best_rf_model = grid_search.best_estimator_
 
-# Evaluate model
-accuracy = accuracy_score(y_test, y_pred)
-precision = precision_score(y_test, y_pred, zero_division=1)
-recall = recall_score(y_test, y_pred, zero_division=1)
-f1 = f1_score(y_test, y_pred, zero_division=1)
+    # Train Random Forest model
+    best_rf_model.fit(X_train_resampled, y_train_resampled)
 
-# Print evaluation results
-print("\nRandom Forest + TF-IDF Weighted Word2Vec Performance (After Tuning):")
-print(f"Accuracy: {accuracy:.4f}")
-print(f"Precision: {precision:.4f}")
-print(f"Recall: {recall:.4f}")
-print(f"F1 Score: {f1:.4f}\n")
+    # Predictions (Using Lower Threshold 0.3)
+    y_pred_proba = best_rf_model.predict_proba(X_test)[:, 1]  # Get probability of class 1 (Bug)
+    y_pred = (y_pred_proba > 0.3).astype(int)  # Lower threshold from 0.5 to 0.3
+
+    # Evaluate model
+    accuracy_list.append(accuracy_score(y_test, y_pred))
+    precision_list.append(precision_score(y_test, y_pred, zero_division=1))
+    recall_list.append(recall_score(y_test, y_pred, zero_division=1))
+    f1_list.append(f1_score(y_test, y_pred, zero_division=1))
+
+# Compute mean & median of evaluation metrics
+print("\nFinal Performance Across 30 Runs:")
+print(f"Mean Accuracy: {np.mean(accuracy_list):.4f}, Median Accuracy: {np.median(accuracy_list):.4f}")
+print(f"Mean Precision: {np.mean(precision_list):.4f}, Median Precision: {np.median(precision_list):.4f}")
+print(f"Mean Recall: {np.mean(recall_list):.4f}, Median Recall: {np.median(recall_list):.4f}")
+print(f"Mean F1 Score: {np.mean(f1_list):.4f}, Median F1 Score: {np.median(f1_list):.4f}")
 
 # Sentiment Analysis using VADER
 sia = SentimentIntensityAnalyzer()
