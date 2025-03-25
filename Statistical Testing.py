@@ -10,8 +10,8 @@ def cliffs_delta(x, y):
     return (np.sum(diff > 0) - np.sum(diff < 0)) / (len(x) * len(y))
 
 # Load results
-nb_results = pd.read_csv("tensorflow_naive_bayes_results.csv")
-rf_results = pd.read_csv("tensorflow_improved_rf_results.csv")
+nb_results = pd.read_csv("Results/tensorflow_naive_bayes_results.csv")
+rf_results = pd.read_csv("Results/tensorflow_improved_rf_results.csv")
 
 # Extract Matrix
 nb_f1 = nb_results["Recall"]
