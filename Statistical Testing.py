@@ -10,10 +10,10 @@ def cliffs_delta(x, y):
     return (np.sum(diff > 0) - np.sum(diff < 0)) / (len(x) * len(y))
 
 # Load results
-nb_results = pd.read_csv("naive_bayes_results.csv")
-rf_results = pd.read_csv("improved_rf_results.csv")
+nb_results = pd.read_csv("tensorflow_naive_bayes_results.csv")
+rf_results = pd.read_csv("tensorflow_improved_rf_results.csv")
 
-# Extract F1-scores
+# Extract Matrix
 nb_f1 = nb_results["Recall"]
 rf_f1 = rf_results["Recall"]
 
@@ -23,7 +23,7 @@ print(f"Naïve Bayes:\n{nb_f1.describe()}")
 print(f"\nRandom Forest:\n{rf_f1.describe()}")
 
 # Check unique values
-print("\n🎯 Unique F1-score Values in Random Forest:")
+print("\n🎯 Unique Recall Values in Random Forest:")
 print(rf_f1.unique())
 
 # Normality tests

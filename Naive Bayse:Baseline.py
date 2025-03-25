@@ -6,7 +6,7 @@ from sklearn.naive_bayes import MultinomialNB
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
 
 # Load dataset
-file_path = "/Users/anshreyas/Documents/University Of Birmingham/Study Material/Sem 2/Intelligent Software Engineering/lab1_dataset/pytorch.csv"
+file_path = "/Users/anshreyas/Documents/University Of Birmingham/Study Material/Sem 2/Intelligent Software Engineering/lab1_dataset/tensorflow.csv"
 df = pd.read_csv(file_path, encoding='utf-8')
 
 # Select relevant columns and handle missing values
@@ -41,6 +41,6 @@ for i in range(30):
 
 # Save results to CSV
 results_df = pd.DataFrame(results, columns=["Accuracy", "Precision", "Recall", "F1-score"])
-results_df.to_csv("naive_bayes_results.csv", index=False)
+results_df.to_csv("tensorflow_naive_bayes_results.csv", index=False)
 
-print("Naïve Bayes results saved to naive_bayes_results.csv")
+print("Naïve Bayes results saved to tensorflow_naive_bayes_results.csv")
